@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: envfrom
+data:
+  HELLO: hello
+  WORLD: world
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: envfrom2
+data:
+  MY_AAA: aaa
+  MY_BBB: bbb
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: envfrom
+stringData:
+  FOO: foo
+  BAR: bar
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: envfrom
+spec:
+  containers:
+    - name: main
+      image: busybox
+      command:
+        - /bin/sh
+        - -c
+        - env | grep MY_
+      envFrom:
+        - prefix: MY_CONFIG_
+          configMapRef:
+            name: envfrom
+        - configMapRef:
+            name: envfrom2
+        - prefix: MY_SECRET_
+          secretRef:
+            name: envfrom
+      resources:
+        requests:
+          cpu: 30m
+          memory: 20Mi
+        limits:
+          cpu: 30m
+          memory: 20Mi
+  restartPolicy: Never

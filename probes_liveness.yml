@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: liveness
+  labels:
+    app: liveness
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: liveness
+      svc: example
+  template:
+    metadata:
+      labels:
+        app: liveness
+        svc: example
+    spec:
+      containers:
+        - image: ghcr.io/cybercryptio/liveness
+          name: health
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 8000
+            initialDelaySeconds: 5
+            failureThreshold: 2
+            periodSeconds: 1
+          ports:
+            - name: http
+              containerPort: 8000
+          resources:
+            requests:
+              memory: 10Mi
+              cpu: 10m
+            limits:
+              memory: 100Mi
+              cpu: 20m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: liveness
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+  selector:
+    app: liveness

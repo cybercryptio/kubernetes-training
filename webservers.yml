@@ -1,0 +1,131 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  labels:
+    project: webservers
+spec:
+  selector:
+    matchLabels:
+      project: webservers
+      app: nginx
+  template:
+    metadata:
+      labels:
+        project: webservers
+        app: nginx
+    spec:
+      containers:
+        - name: main
+          image: nginx
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 20m
+              memory: 30Mi
+            limits:
+              cpu: 50m
+              memory: 50Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels:
+    project: webservers
+spec:
+  selector:
+    project: webservers
+    app: nginx
+  ports:
+    - name: http
+      port: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apache
+  labels:
+    project: webservers
+spec:
+  selector:
+    matchLabels:
+      project: webservers
+      app: apache
+  template:
+    metadata:
+      labels:
+        project: webservers
+        app: apache
+    spec:
+      containers:
+        - name: main
+          image: httpd
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 20m
+              memory: 30Mi
+            limits:
+              cpu: 50m
+              memory: 50Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apache
+  labels:
+    project: webservers
+spec:
+  selector:
+    project: webservers
+    app: apache
+  ports:
+    - name: http
+      port: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: caddy
+  labels:
+    project: webservers
+spec:
+  selector:
+    matchLabels:
+      project: webservers
+      app: caddy
+  template:
+    metadata:
+      labels:
+        project: webservers
+        app: caddy
+    spec:
+      containers:
+        - name: main
+          image: caddy
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 20m
+              memory: 30Mi
+            limits:
+              cpu: 50m
+              memory: 50Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: caddy
+  labels:
+    project: webservers
+spec:
+  selector:
+    project: webservers
+    app: caddy
+  ports:
+    - name: http
+      port: 80

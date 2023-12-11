@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+spec:
+  serviceName: redis
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Delete
+  volumeClaimTemplates:
+    - metadata:
+        name: redis
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+  selector:
+    matchLabels:
+      app: redis
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis
+          command:
+            - redis-server
+          args:
+            - --appendonly
+            - "yes"
+          resources:
+            requests:
+              cpu: 30m
+              memory: 50Mi
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - mountPath: /data
+              name: redis
+      volumes:
+        - name: redis
+          persistentVolumeClaim:
+            claimName: redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: counter
+spec:
+  selector:
+    matchLabels:
+      app: counter
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: counter
+    spec:
+      containers:
+        - name: counter
+          image: ghcr.io/cybercryptio/counter
+          resources:
+            requests:
+              cpu: 20m
+              memory: 10Mi
+          env:
+            - name: REDIS
+              value: redis
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: counter
+spec:
+  type: NodePort
+  selector:
+    app: counter
+  ports:
+    - port: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: counter
+spec:
+  rules:
+    - host: counter.127.0.0.1.nip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: counter
+                port:
+                  number: 80

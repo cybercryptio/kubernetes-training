@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ab
+spec:
+  completions: 10
+  parallelism: 2
+  template:
+    metadata:
+      name: ab
+    spec:
+      containers:
+        - name: ab
+          image: ghcr.io/cybercryptio/dev
+          command: ["/bin/sh", "-c"]
+          args: ["ab -c 4 -n 100000 http://hpa-service/"]
+      restartPolicy: Never

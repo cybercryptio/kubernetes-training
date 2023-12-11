@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      initContainers:
+        - name: wait
+          image: busybox:1.28
+          command:
+            - sleep
+          args:
+            - "20"
+      containers:
+        - name: main
+          image: redis
+          resources:
+            requests:
+              cpu: 30m
+              memory: 50Mi
+            limits:
+              cpu: 50m
+              memory: 80Mi
+          ports:
+            - containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: counter
+  annotations:
+    app.openshift.io/connects-to: |
+      [{"apiVersion":"apps/v1","kind":"StatefulSet","name":"redis"}]
+spec:
+  selector:
+    matchLabels:
+      app: counter
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: counter
+    spec:
+      initContainers:
+        - name: wait-for-redis
+          image: ghcr.io/cybercryptio/slu:v0.71.0
+          args:
+            - /bin/sh
+            - -c
+            - slu wait-for tcp -a redis:6379
+      containers:
+        - name: main
+          image: ghcr.io/cybercryptio/counter
+          resources:
+            requests:
+              cpu: 20m
+              memory: 30Mi
+            limits:
+              cpu: 50m
+              memory: 60Mi
+          env:
+            - name: REDIS
+              value: redis
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: counter
+spec:
+  selector:
+    app: counter
+  ports:
+    - port: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: counter
+spec:
+  rules:
+    - host: counter.127.0.0.1.nip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: counter
+                port:
+                  number: 80

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: liveness-exec
+  labels:
+    app: liveness-exec
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: liveness-exec
+  template:
+    metadata:
+      labels:
+        app: liveness-exec
+        svc: example
+    spec:
+      containers:
+        - image: ghcr.io/cybercryptio/slu:v0.71.0
+          name: main
+          args:
+            - /bin/sh
+            - -c
+            - touch /tmp/healthy; slu example-server
+          livenessProbe:
+            exec:
+              command:
+                - cat
+                - /tmp/healthy
+            initialDelaySeconds: 5
+            failureThreshold: 2
+            periodSeconds: 1
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              memory: 50Mi
+              cpu: 50m
+            limits:
+              memory: 100Mi
+              cpu: 100m

@@ -1,0 +1,12 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: hello-world
+  namespace: default
+spec:
+  repo: https://cybercrypt-helm.vercel.app
+  chart: hello-world
+  targetNamespace: default
+  set:
+    host: k3s.cyber-crypt.com
+    replicas: 3

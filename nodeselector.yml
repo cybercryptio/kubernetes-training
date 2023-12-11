@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nodeselector
+spec:
+  nodeSelector:
+    foo: bar
+  containers:
+    - name: hello
+      image: ghcr.io/cybercryptio/training-example
+      resources:
+        requests:
+          memory: 10Mi
+          cpu: 10m
+        limits:
+          memory: 20Mi
+          cpu: 20m

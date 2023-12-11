@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-world-nodeport
+spec:
+  type: NodePort
+  externalTrafficPolicy: Cluster
+  # externalTrafficPolicy: Local
+  selector:
+    app: example
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+      # nodePort is optional (30000-32767)
+      nodePort: 31001

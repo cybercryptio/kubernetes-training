@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: read-user
+  namespace: kube-system
+secrets:
+  - name: read-user
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: read-user
+  namespace: kube-system
+  annotations:
+    kubernetes.io/service-account.name: read-user
+type: kubernetes.io/service-account-token
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pod-reader
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: read-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pod-reader
+subjects:
+  - kind: ServiceAccount
+    name: read-user
+    namespace: kube-system

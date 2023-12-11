@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: expand-config
+data:
+  config.yaml.txt: |
+    host: postgres
+    port: 5432
+    user: $DB_USER
+    password: $DB_PASSWORD
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: expand-config
+stringData:
+  DB_USER: foo
+  DB_PASSWORD: bar
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: expand-config
+spec:
+  volumes:
+    - name: config1
+      configMap:
+        name: expand-config
+    - name: config2
+      emptyDir: {}
+  initContainers:
+    - name: config
+      image: ghcr.io/cybercryptio/slu:v0.71.0
+      command:
+        - "/bin/sh"
+        - "-c"
+        - "slu expand file -s /config1/config.yaml.txt > /config2/config.yaml.txt"
+      volumeMounts:
+        - mountPath: /config2
+          name: config2
+        - mountPath: /config1
+          name: config1
+      envFrom:
+        - secretRef:
+            name: expand-config
+      resources:
+        requests:
+          memory: 50Mi
+          cpu: 50m
+        limits:
+          memory: 100Mi
+          cpu: 100m
+  containers:
+    - name: main
+      image: ghcr.io/cybercryptio/nginx-public
+      volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: config2
+      resources:
+        requests:
+          memory: 50Mi
+          cpu: 50m
+        limits:
+          memory: 100Mi
+          cpu: 100m

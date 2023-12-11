@@ -1,0 +1,12 @@
+.DS_Store
+.vscode
+node_modules
+
+kubeconfig.yml
+repo
+/charts
+/counter/**
+counter-*.tgz
+/index.html
+
+kube-prometheus

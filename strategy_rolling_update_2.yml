@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rolling-update
+spec:
+  selector:
+    matchLabels:
+      app: rolling-update
+  replicas: 20
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: rolling-update
+        svc: example
+    spec:
+      containers:
+        - name: hello-world
+          image: ghcr.io/cybercryptio/training-example:yellow
+          ports:
+            - containerPort: 80
+          startupProbe:
+            httpGet:
+              path: /
+              port: 80
+          resources:
+            requests:
+              cpu: 10m
+              memory: 10Mi
+            limits:
+              memory: 20Mi
+              cpu: 20m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rolling-update
+spec:
+  type: NodePort
+  selector:
+    app: rolling-update
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80

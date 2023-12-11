@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pvc-mount-example
+spec:
+  selector:
+    matchLabels:
+      app: pvc-mount-example
+  template:
+    metadata:
+      labels:
+        app: pvc-mount-example
+    spec:
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: default-pvc
+      containers:
+        - name: nginx
+          image: ghcr.io/cybercryptio/nginx-public
+          resources:
+            requests:
+              cpu: 20m
+              memory: 30Mi
+            limits:
+              cpu: 50m
+              memory: 50Mi
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/nginx/html
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pvc-mount-example
+spec:
+  type: ClusterIP
+  selector:
+    app: pvc-mount-example
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
